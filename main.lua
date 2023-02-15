@@ -24,10 +24,10 @@ function love.load()
 	
 	if fullscreen == false then
 		if scale ~= 5 then
-			love.graphics.setMode( 160*scale, 144*scale, false, vsync, 0 )
+			love.window.setMode( 160*scale, 144*scale, { fullscreen = false, vsync = vsync } )
 		end
 	else
-		love.graphics.setMode( 0, 0, true, vsync, 0 )
+		love.window.setMode( 0, 0, { fullscreen = true, vsync = vsync })
 		love.mouse.setVisible( false )
 		desktopwidth, desktopheight = love.graphics.getWidth(), love.graphics.getHeight()
 		saveoptions()
@@ -93,7 +93,7 @@ function love.load()
 	musicoptions:setVolume( 1 )
 	musicoptions:setLooping( true )
 	
-	boot = love.audio.newSource( "sounds/boot.ogg")
+	boot = love.audio.newSource( "sounds/boot.ogg", "stream")
 	blockfall = love.audio.newSource( "sounds/blockfall.ogg", "stream")
 	blockturn = love.audio.newSource( "sounds/turn.ogg", "stream")
 	blockmove = love.audio.newSource( "sounds/move.ogg", "stream")
@@ -455,9 +455,9 @@ function newPaddedImageFont(filename, glyphs)
     if wp ~= w or hp ~= h then
         local padded = love.image.newImageData(wp, hp)
         padded:paste(source, 0, 0)
-		local image = love.graphics.newImage(padded)
-		image:setFilter("nearest", "nearest")
-        return love.graphics.newImageFont(image, glyphs)
+	local font = love.graphics.newImageFont(padded, glyphs)
+	font:setFilter("nearest", "nearest")
+        return font
     end
 	
     return love.graphics.newImageFont(source, glyphs)
@@ -599,8 +599,8 @@ function saveoptions()
 end
 
 function autosize()
-	local modes = love.graphics.getModes()
-	desktopwidth, desktopheight = modes[1]["width"], modes[1]["height"]
+	local _flags
+	desktopwidth, desktopheight, _flags = love.window.getMode()
 end
 
 function togglefullscreen(fullscr)
@@ -609,9 +609,11 @@ function togglefullscreen(fullscr)
 	if fullscr == false then
 		scale = suggestedscale
 		physicsscale = scale/4
-		love.graphics.setMode( 160*scale, 144*scale, false, vsync, 0 )
+		love.window.setMode( 160*scale, 144*scale, { fullscreen = false, vsync = vsync } )
 	else
-		love.graphics.setMode( 0, 0, true, vsync, 16 )
+		-- No fsaa option in latest love?
+		--love.window.setMode( 0, 0, true, vsync, 16 )
+		love.window.setMode( 0, 0, { fullscreen  = true, vsync = vsync } )
 		desktopwidth, desktopheight = love.graphics.getWidth(), love.graphics.getHeight()
 		suggestedscale = math.min(math.floor((desktopheight-50)/144), math.floor((desktopwidth-10)/160))
 		suggestedscale = math.min(math.floor((desktopheight-50)/144), math.floor((desktopwidth-10)/160))
@@ -685,7 +687,7 @@ function savehighscores()
 end
 
 function changescale(i)
-	love.graphics.setMode( 160*i, 144*i, false, vsync, 0 )
+	love.window.setMode( 160*i, 144*i, { fullscreen = false, vsync = vsync } )
 	nextpieceimg = {}
 	for j = 1, 7 do
 		nextpieceimg[j] = newPaddedImage( "graphics/pieces/"..j..".png", i )
@@ -1120,7 +1122,7 @@ function love.keypressed( key, unicode )
 	elseif gamestate == "gameBmulti" and gamestarted == false then
 		if controls.check("escape", key) then
 			if not fullscreen then
-				love.graphics.setMode( 160*scale, 144*scale, false, vsync, 0 )
+				love.window.setMode( 160*scale, 144*scale, { fullscreen = false, vsync = vsync } )
 			end
 			gamestate = "multimenu"
 			if musicno < 4 then
@@ -1130,7 +1132,7 @@ function love.keypressed( key, unicode )
 	elseif gamestate == "gameBmulti" and gamestarted == true then
 		if controls.check("escape", key) then
 			if not fullscreen then
-				love.graphics.setMode( 160*scale, 144*scale, false, vsync, 0 )
+				love.window.setMode( 160*scale, 144*scale, { fullscreen = false, vsync = vsync} )
 			end
 			gamestate = "multimenu"
 		end
@@ -1149,7 +1151,7 @@ function love.keypressed( key, unicode )
 				love.audio.play(music[musicno])
 			end
 			if not fullscreen then
-				love.graphics.setMode( 160*scale, 144*scale, false, vsync, 0 )
+				love.window.setMode( 160*scale, 144*scale, { fullscreen = false, vsync = vsync } )
 			end
 			gamestate = "multimenu"
 		end
